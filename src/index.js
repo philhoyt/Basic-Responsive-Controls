@@ -1,7 +1,7 @@
 import { addFilter } from '@wordpress/hooks';
 import { createHigherOrderComponent } from '@wordpress/compose';
 import { InspectorControls, useSettings } from '@wordpress/block-editor';
-import { useEffect } from '@wordpress/element';
+import { useEffect, useRef } from '@wordpress/element';
 
 import { RESPONSIVE_BLOCKS } from './config';
 import { useDeviceType } from './hooks/useDeviceType';
@@ -78,6 +78,10 @@ const withResponsiveControls = createHigherOrderComponent( ( BlockEdit ) => {
 		// Retrieve theme font size presets for the editor preview resolver.
 		const [ fontSizes ] = useSettings( 'typography.fontSizes' );
 
+		// Stores the block element's original inline font-size before we override
+		// it, so we can restore it exactly when switching back to Desktop.
+		const originalFontSizeRef = useRef( null );
+
 		// DEBUG — logs DOM structure to confirm whether .is-tablet-preview is an
 		// ancestor of .typography-block-support-panel. Remove once confirmed.
 		useEffect( () => {
@@ -133,6 +137,12 @@ const withResponsiveControls = createHigherOrderComponent( ( BlockEdit ) => {
 
 		// Apply/clear inline font size on the block element in the editor canvas.
 		// The block canvas runs inside an iframe as of WordPress 6.3.
+		//
+		// The editor applies the desktop font size as a React-controlled inline
+		// style. Calling removeProperty() clears it but React never re-applies it
+		// because from React's perspective nothing changed. Instead we save the
+		// original value in a ref before our first override and restore it exactly
+		// when switching back to Desktop.
 		useEffect( () => {
 			if ( ! resolvedBlockId ) return;
 
@@ -154,9 +164,19 @@ const withResponsiveControls = createHigherOrderComponent( ( BlockEdit ) => {
 			if ( ! blockEl ) return;
 
 			if ( fontSize ) {
+				// Capture the desktop inline style before our first override.
+				if ( originalFontSizeRef.current === null ) {
+					originalFontSizeRef.current = blockEl.style.fontSize;
+				}
 				blockEl.style.fontSize = fontSize;
 			} else {
-				blockEl.style.removeProperty( 'font-size' );
+				// Restore what React had set rather than just removing the property.
+				if ( originalFontSizeRef.current !== null ) {
+					blockEl.style.fontSize = originalFontSizeRef.current;
+					originalFontSizeRef.current = null;
+				} else {
+					blockEl.style.removeProperty( 'font-size' );
+				}
 			}
 		}, [ deviceType, tabletFontSize, mobileFontSize, resolvedBlockId ] );
 
