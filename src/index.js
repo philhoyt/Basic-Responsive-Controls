@@ -100,15 +100,34 @@ const withResponsiveControls = createHigherOrderComponent( ( BlockEdit ) => {
 		// CSS-based hiding (.is-tablet-preview selector) does not work in WP 7.0
 		// because .is-tablet-preview is on the canvas iframe container, not an
 		// ancestor of the inspector sidebar in the outer document.
+		//
+		// A MutationObserver re-applies hiding whenever WordPress remounts the
+		// ToolsPanelItem elements (which clears our inline styles), fixing the
+		// intermittent flash where items briefly reappear after a device switch.
 		useEffect( () => {
-			const panelItems = document.querySelectorAll(
-				'.typography-block-support-panel .components-tools-panel-item'
-			);
-			panelItems.forEach( ( el ) => {
-				el.style.display = deviceType !== 'Desktop' ? 'none' : '';
-			} );
+			const isResponsive = deviceType !== 'Desktop';
+
+			const applyHiding = () => {
+				document
+					.querySelectorAll( '.typography-block-support-panel .components-tools-panel-item' )
+					.forEach( ( el ) => {
+						el.style.display = isResponsive ? 'none' : '';
+					} );
+			};
+
+			applyHiding();
+
+			const panel = document.querySelector( '.typography-block-support-panel' );
+			if ( ! panel ) return;
+
+			const observer = new MutationObserver( applyHiding );
+			observer.observe( panel, { childList: true, subtree: true } );
+
 			return () => {
-				panelItems.forEach( ( el ) => el.style.removeProperty( 'display' ) );
+				observer.disconnect();
+				document
+					.querySelectorAll( '.typography-block-support-panel .components-tools-panel-item' )
+					.forEach( ( el ) => el.style.removeProperty( 'display' ) );
 			};
 		}, [ deviceType ] );
 
