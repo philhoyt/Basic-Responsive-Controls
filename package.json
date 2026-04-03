@@ -1,0 +1,16 @@
+{
+  "name": "ph-basic-responsive-controls",
+  "version": "1.0.0",
+  "description": "Responsive typography controls for the WordPress block editor.",
+  "license": "GPL-2.0-or-later",
+  "scripts": {
+    "build": "wp-scripts build",
+    "start": "wp-scripts start",
+    "lint:js": "wp-scripts lint-js",
+    "lint:css": "wp-scripts lint-style",
+    "plugin-zip": "wp-scripts plugin-zip"
+  },
+  "devDependencies": {
+    "@wordpress/scripts": "^30.0.0"
+  }
+}

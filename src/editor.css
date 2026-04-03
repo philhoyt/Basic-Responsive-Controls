@@ -1,0 +1,13 @@
+/*
+ * Our control is injected via InspectorControls group="typography" as a direct
+ * child of the ToolsPanel root element, which uses a 2-column CSS grid
+ * (class: components-grid). Without grid-column: 1 / -1 our div would occupy
+ * one column, appearing squished at half width.
+ */
+.ph-brc-font-size-control {
+	grid-column: 1 / -1;
+}
+
+.ph-brc-font-size-control .components-button {
+	margin-top: 8px;
+}
