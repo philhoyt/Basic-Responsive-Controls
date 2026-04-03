@@ -1,4 +1,4 @@
-# PH Basic Responsive Controls
+# Basic Responsive Controls
 
 A WordPress plugin that adds breakpoint-specific font size controls to the block editor. When previewing in Tablet or Mobile mode, a dedicated font size picker replaces the default control in the Typography panel.
 
@@ -24,7 +24,7 @@ On the frontend, scoped CSS is injected inline with the block output using media
 
 ## Installation
 
-1. Download the latest `ph-basic-responsive-controls.zip` from the [releases page](https://github.com/philhoyt/ph-basic-responsive-controls/releases).
+1. Download the latest `basic-responsive-controls.zip` from the [releases page](https://github.com/philhoyt/Basic-Responsive-Controls/releases).
 2. Go to **Plugins > Add New Plugin > Upload Plugin** and upload the zip file.
 3. Activate through the Plugins screen.
 4. Add a Heading block to any post or page, switch to Tablet or Mobile preview mode, and open the Typography panel in the block inspector.
