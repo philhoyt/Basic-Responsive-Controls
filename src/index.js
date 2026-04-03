@@ -72,8 +72,12 @@ const withResponsiveControls = createHigherOrderComponent( ( BlockEdit ) => {
 			return <BlockEdit { ...props } />;
 		}
 
-		const deviceType      = useDeviceType();
-		const resolvedBlockId = useBlockId( { blockId, clientId, setAttributes } );
+		const deviceType = useDeviceType();
+		const resolvedBlockId = useBlockId( {
+			blockId,
+			clientId,
+			setAttributes,
+		} );
 
 		// Retrieve theme font size presets for the editor preview resolver.
 		const [ fontSizes ] = useSettings( 'typography.fontSizes' );
@@ -95,7 +99,9 @@ const withResponsiveControls = createHigherOrderComponent( ( BlockEdit ) => {
 
 			const applyHiding = () => {
 				document
-					.querySelectorAll( '.typography-block-support-panel .components-tools-panel-item' )
+					.querySelectorAll(
+						'.typography-block-support-panel .components-tools-panel-item'
+					)
 					.forEach( ( el ) => {
 						el.style.display = isResponsive ? 'none' : '';
 					} );
@@ -103,8 +109,12 @@ const withResponsiveControls = createHigherOrderComponent( ( BlockEdit ) => {
 
 			applyHiding();
 
-			const panel = document.querySelector( '.typography-block-support-panel' );
-			if ( ! panel ) return;
+			const panel = document.querySelector(
+				'.typography-block-support-panel'
+			);
+			if ( ! panel ) {
+				return;
+			}
 
 			const observer = new MutationObserver( applyHiding );
 			observer.observe( panel, { childList: true, subtree: true } );
@@ -112,7 +122,9 @@ const withResponsiveControls = createHigherOrderComponent( ( BlockEdit ) => {
 			return () => {
 				observer.disconnect();
 				document
-					.querySelectorAll( '.typography-block-support-panel .components-tools-panel-item' )
+					.querySelectorAll(
+						'.typography-block-support-panel .components-tools-panel-item'
+					)
 					.forEach( ( el ) => el.style.removeProperty( 'display' ) );
 			};
 		}, [ deviceType ] );
@@ -126,7 +138,9 @@ const withResponsiveControls = createHigherOrderComponent( ( BlockEdit ) => {
 		// original value in a ref before our first override and restore it exactly
 		// when switching back to Desktop.
 		useEffect( () => {
-			if ( ! resolvedBlockId ) return;
+			if ( ! resolvedBlockId ) {
+				return;
+			}
 
 			let fontSize = null;
 
@@ -139,11 +153,15 @@ const withResponsiveControls = createHigherOrderComponent( ( BlockEdit ) => {
 			// Locate the block element — first try the iframe canvas, then
 			// fall back to the outer document for non-iframe editor setups.
 			// NOTE: 'iframe[name="editor-canvas"]' is the WordPress 6.3+ selector.
-			const iframe  = document.querySelector( 'iframe[name="editor-canvas"]' );
-			const doc     = iframe?.contentDocument ?? document;
+			const iframe = document.querySelector(
+				'iframe[name="editor-canvas"]'
+			);
+			const doc = iframe?.contentDocument ?? document;
 			const blockEl = doc.querySelector( `[data-block="${ clientId }"]` );
 
-			if ( ! blockEl ) return;
+			if ( ! blockEl ) {
+				return;
+			}
 
 			if ( fontSize ) {
 				// Capture the desktop inline style before our first override.
@@ -151,16 +169,21 @@ const withResponsiveControls = createHigherOrderComponent( ( BlockEdit ) => {
 					originalFontSizeRef.current = blockEl.style.fontSize;
 				}
 				blockEl.style.fontSize = fontSize;
-			} else {
+			} else if ( originalFontSizeRef.current !== null ) {
 				// Restore what React had set rather than just removing the property.
-				if ( originalFontSizeRef.current !== null ) {
-					blockEl.style.fontSize = originalFontSizeRef.current;
-					originalFontSizeRef.current = null;
-				} else {
-					blockEl.style.removeProperty( 'font-size' );
-				}
+				blockEl.style.fontSize = originalFontSizeRef.current;
+				originalFontSizeRef.current = null;
+			} else {
+				blockEl.style.removeProperty( 'font-size' );
 			}
-		}, [ deviceType, tabletFontSize, mobileFontSize, resolvedBlockId ] );
+		}, [
+			clientId,
+			deviceType,
+			fontSizes,
+			mobileFontSize,
+			resolvedBlockId,
+			tabletFontSize,
+		] );
 
 		return (
 			<>

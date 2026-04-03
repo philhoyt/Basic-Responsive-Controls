@@ -20,7 +20,9 @@ export function FontSizeControl( { label, value, onChange } ) {
 	const wrapperRef = useRef();
 
 	useLayoutEffect( () => {
-		if ( ! wrapperRef.current || ! label ) return;
+		if ( ! wrapperRef.current || ! label ) {
+			return;
+		}
 		const labelEl = wrapperRef.current.querySelector(
 			'.components-font-size-picker__header .components-base-control__label'
 		);
@@ -42,7 +44,9 @@ export function FontSizeControl( { label, value, onChange } ) {
 					isDestructive
 					onClick={ () => onChange( undefined ) }
 				>
-					{ label ? `Reset ${ label } to default` : 'Reset to default' }
+					{ label
+						? `Reset ${ label } to default`
+						: 'Reset to default' }
 				</Button>
 			) }
 		</div>
