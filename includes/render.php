@@ -76,12 +76,12 @@ add_filter( 'render_block', function ( string $block_content, array $block ): st
 
 	if ( ! empty( $tablet_font_size ) ) {
 		$value  = ph_brc_resolve_font_size( $tablet_font_size );
-		$style .= '@media(max-width:782px){.phbrc-' . $block_id . '{font-size:' . $value . ';}}';
+		$style .= '@media(max-width:782px){.phbrc-' . $block_id . '{font-size:' . $value . ' !important;}}';
 	}
 
 	if ( ! empty( $mobile_font_size ) ) {
 		$value  = ph_brc_resolve_font_size( $mobile_font_size );
-		$style .= '@media(max-width:480px){.phbrc-' . $block_id . '{font-size:' . $value . ';}}';
+		$style .= '@media(max-width:480px){.phbrc-' . $block_id . '{font-size:' . $value . ' !important;}}';
 	}
 
 	$style .= '</style>';
