@@ -10,6 +10,11 @@
     "lint:css": "wp-scripts lint-style",
     "plugin-zip": "wp-scripts plugin-zip"
   },
+  "files": [
+    "basic-responsive-controls.php",
+    "includes/**",
+    "build/**"
+  ],
   "devDependencies": {
     "@wordpress/scripts": "^30.0.0"
   }
