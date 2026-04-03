@@ -1,6 +1,7 @@
 import { addFilter } from '@wordpress/hooks';
 import { createHigherOrderComponent } from '@wordpress/compose';
 import { InspectorControls, useSettings } from '@wordpress/block-editor';
+import { Button } from '@wordpress/components';
 import { useEffect, useRef } from '@wordpress/element';
 
 import { RESPONSIVE_BLOCKS } from './config';
@@ -218,6 +219,23 @@ function ResponsiveControlsEdit( { BlockEdit, ...props } ) {
 						}
 					/>
 				) }
+				{ deviceType === 'Desktop' &&
+					( tabletFontSize || mobileFontSize ) && (
+						<div className="ph-brc-reset-all">
+							<Button
+								variant="link"
+								isDestructive
+								onClick={ () =>
+									setAttributes( {
+										tabletFontSize: '',
+										mobileFontSize: '',
+									} )
+								}
+							>
+								Reset all responsive font sizes
+							</Button>
+						</div>
+					) }
 			</InspectorControls>
 		</>
 	);

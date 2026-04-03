@@ -8,3 +8,10 @@
 	grid-column: 1 / -1;
 }
 
+.ph-brc-font-size-control .components-button {
+	padding-top: 1rem;
+}
+
+.ph-brc-reset-all {
+	grid-column: 1 / -1;
+}
