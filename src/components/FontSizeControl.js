@@ -29,7 +29,7 @@ export function FontSizeControl( { label, value, onChange } ) {
 		if ( labelEl ) {
 			labelEl.textContent = `Font Size [${ label }]`;
 		}
-	} );
+	}, [ label ] );
 
 	return (
 		<div ref={ wrapperRef } className="ph-brc-font-size-control">
