@@ -1,10 +1,11 @@
 <?php
 /**
  * Plugin Name: PH Basic Responsive Controls
- * Plugin URI:  https://github.com/philhoyt/ph-basic-responsive-controls
+ * Plugin URI:  https://github.com/philhoyt/Basic-Responsive-Controls
  * Description: Responsive typography controls for the WordPress block editor.
  * Version:     1.0.0
- * Author:      Phil Hoyt
+ * Author:      philhoyt
+ * Author URI:  https://philhoyt.com
  * License:     GPL-2.0-or-later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain: ph-basic-responsive-controls
