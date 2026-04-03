@@ -82,24 +82,6 @@ const withResponsiveControls = createHigherOrderComponent( ( BlockEdit ) => {
 		// it, so we can restore it exactly when switching back to Desktop.
 		const originalFontSizeRef = useRef( null );
 
-		// DEBUG — logs DOM structure to confirm whether .is-tablet-preview is an
-		// ancestor of .typography-block-support-panel. Remove once confirmed.
-		useEffect( () => {
-			console.log( '[ph-brc] deviceType:', deviceType );
-			console.log( '[ph-brc] .is-tablet-preview in doc:', document.querySelectorAll( '.is-tablet-preview' ).length );
-			console.log( '[ph-brc] .is-mobile-preview in doc:', document.querySelectorAll( '.is-mobile-preview' ).length );
-			const panel = document.querySelector( '.typography-block-support-panel' );
-			if ( panel ) {
-				let el = panel.parentElement;
-				const path = [];
-				while ( el && path.length < 8 ) {
-					path.push( ( el.className || el.tagName ).toString().split( ' ' )[ 0 ] );
-					el = el.parentElement;
-				}
-				console.log( '[ph-brc] panel ancestor path:', path );
-			}
-		}, [ deviceType ] );
-
 		// Hide core Typography panel items in tablet/mobile via JS.
 		// CSS-based hiding (.is-tablet-preview selector) does not work in WP 7.0
 		// because .is-tablet-preview is on the canvas iframe container, not an
