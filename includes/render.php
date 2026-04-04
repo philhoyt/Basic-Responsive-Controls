@@ -75,10 +75,17 @@ add_filter(
 			return $block_content;
 		}
 
-		$tablet_font_size = $attrs['tabletFontSize'] ?? '';
-		$mobile_font_size = $attrs['mobileFontSize'] ?? '';
+		$tablet_font_size  = $attrs['tabletFontSize'] ?? '';
+		$mobile_font_size  = $attrs['mobileFontSize'] ?? '';
+		$tablet_text_align = $attrs['tabletTextAlign'] ?? '';
+		$mobile_text_align = $attrs['mobileTextAlign'] ?? '';
 
-		if ( empty( $tablet_font_size ) && empty( $mobile_font_size ) ) {
+		if (
+			empty( $tablet_font_size ) &&
+			empty( $mobile_font_size ) &&
+			empty( $tablet_text_align ) &&
+			empty( $mobile_text_align )
+		) {
 			return $block_content;
 		}
 
@@ -91,16 +98,32 @@ add_filter(
 
 		// Build scoped style tag. Tablet rule must come before mobile so the
 		// cascade works correctly: mobile (≤480px) overrides tablet (≤782px).
-		$style = '<style>';
+		$style        = '<style>';
+		$tablet_rules = '';
+		$mobile_rules = '';
 
 		if ( ! empty( $tablet_font_size ) ) {
-			$value  = ph_brc_sanitize_css_value( ph_brc_resolve_font_size( $tablet_font_size ) );
-			$style .= '@media(max-width:782px){.phbrc-' . $block_id . '{font-size:' . $value . ' !important;}}';
+			$tablet_rules .= 'font-size:' . ph_brc_sanitize_css_value( ph_brc_resolve_font_size( $tablet_font_size ) ) . ' !important;';
+		}
+
+		if ( ! empty( $tablet_text_align ) ) {
+			$tablet_rules .= 'text-align:' . ph_brc_sanitize_css_value( $tablet_text_align ) . ' !important;';
 		}
 
 		if ( ! empty( $mobile_font_size ) ) {
-			$value  = ph_brc_sanitize_css_value( ph_brc_resolve_font_size( $mobile_font_size ) );
-			$style .= '@media(max-width:480px){.phbrc-' . $block_id . '{font-size:' . $value . ' !important;}}';
+			$mobile_rules .= 'font-size:' . ph_brc_sanitize_css_value( ph_brc_resolve_font_size( $mobile_font_size ) ) . ' !important;';
+		}
+
+		if ( ! empty( $mobile_text_align ) ) {
+			$mobile_rules .= 'text-align:' . ph_brc_sanitize_css_value( $mobile_text_align ) . ' !important;';
+		}
+
+		if ( ! empty( $tablet_rules ) ) {
+			$style .= '@media(max-width:782px){.phbrc-' . $block_id . '{' . $tablet_rules . '}}';
+		}
+
+		if ( ! empty( $mobile_rules ) ) {
+			$style .= '@media(max-width:480px){.phbrc-' . $block_id . '{' . $mobile_rules . '}}';
 		}
 
 		$style .= '</style>';

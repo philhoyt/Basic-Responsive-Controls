@@ -1,6 +1,11 @@
 import { addFilter } from '@wordpress/hooks';
 import { createHigherOrderComponent } from '@wordpress/compose';
-import { InspectorControls, useSettings } from '@wordpress/block-editor';
+import {
+	BlockControls,
+	AlignmentControl,
+	InspectorControls,
+	useSettings,
+} from '@wordpress/block-editor';
 import { Button } from '@wordpress/components';
 import { useEffect, useRef } from '@wordpress/element';
 
@@ -72,7 +77,13 @@ addFilter(
  */
 function ResponsiveControlsEdit( { BlockEdit, ...props } ) {
 	const { attributes, setAttributes, clientId } = props;
-	const { blockId, tabletFontSize, mobileFontSize } = attributes;
+	const {
+		blockId,
+		tabletFontSize,
+		mobileFontSize,
+		tabletTextAlign,
+		mobileTextAlign,
+	} = attributes;
 
 	const deviceType = useDeviceType();
 	const resolvedBlockId = useBlockId( {
@@ -88,6 +99,9 @@ function ResponsiveControlsEdit( { BlockEdit, ...props } ) {
 	// Stores the block element's original inline font-size before we override
 	// it, so we can restore it exactly when switching back to Desktop.
 	const originalFontSizeRef = useRef( null );
+
+	// Same save/restore pattern for text-align.
+	const originalTextAlignRef = useRef( null );
 
 	// Hide core Typography panel items in tablet/mobile via JS.
 	// CSS-based hiding (.is-tablet-preview selector) does not work in WP 7.0
@@ -197,9 +211,124 @@ function ResponsiveControlsEdit( { BlockEdit, ...props } ) {
 		tabletFontSize,
 	] );
 
+	// Hide the core alignment toolbar group in tablet/mobile.
+	// The core heading fills the BlockControls slot via BlockEdit before our
+	// AlignmentControl does, so the core group is always first in the toolbar
+	// DOM and ours is last. Hide all but the last alignment group.
+	useEffect( () => {
+		if ( ! resolvedBlockId || deviceType === 'Desktop' ) {
+			return;
+		}
+
+		const applyHiding = () => {
+			const toolbar = document.querySelector(
+				'.block-editor-block-toolbar'
+			);
+			if ( ! toolbar ) {
+				return;
+			}
+
+			// All three align controls land in the same toolbar slot:
+			//   1. aria-label="Align"      — block-level alignment (wide/full), leave alone
+			//   2. aria-label="Align text" — core heading text align (hide this)
+			//   3. aria-label="Align text" — our responsive control (keep this)
+			// Hide all but the last .components-dropdown whose button is "Align text".
+			const alignTextDropdowns = [
+				...toolbar.querySelectorAll( '.components-dropdown' ),
+			].filter( ( d ) =>
+				d.querySelector( 'button[aria-label="Align text"]' )
+			);
+
+			alignTextDropdowns.slice( 0, -1 ).forEach( ( d ) => {
+				d.style.display = 'none';
+			} );
+		};
+
+		applyHiding();
+
+		const toolbar = document.querySelector( '.block-editor-block-toolbar' );
+		if ( ! toolbar ) {
+			return;
+		}
+
+		const observer = new MutationObserver( applyHiding );
+		observer.observe( toolbar, { childList: true, subtree: true } );
+
+		return () => {
+			observer.disconnect();
+			document
+				.querySelectorAll(
+					'.block-editor-block-toolbar .components-dropdown'
+				)
+				.forEach( ( d ) => d.style.removeProperty( 'display' ) );
+		};
+	}, [ deviceType, resolvedBlockId ] );
+
+	// Apply/clear inline text-align on the block element in the editor canvas.
+	useEffect( () => {
+		if ( ! resolvedBlockId ) {
+			return;
+		}
+
+		let textAlign = null;
+
+		if ( deviceType === 'Tablet' && tabletTextAlign ) {
+			textAlign = tabletTextAlign;
+		} else if ( deviceType === 'Mobile' && mobileTextAlign ) {
+			textAlign = mobileTextAlign;
+		}
+
+		const iframe = document.querySelector( 'iframe[name="editor-canvas"]' );
+		const doc = iframe?.contentDocument ?? document;
+		const blockEl = doc.querySelector( `[data-block="${ clientId }"]` );
+
+		if ( ! blockEl ) {
+			return;
+		}
+
+		if ( textAlign ) {
+			if ( originalTextAlignRef.current === null ) {
+				originalTextAlignRef.current = blockEl.style.textAlign;
+			}
+			blockEl.style.textAlign = textAlign;
+		} else if ( originalTextAlignRef.current !== null ) {
+			blockEl.style.textAlign = originalTextAlignRef.current;
+			originalTextAlignRef.current = null;
+		} else {
+			blockEl.style.removeProperty( 'text-align' );
+		}
+	}, [
+		clientId,
+		deviceType,
+		mobileTextAlign,
+		resolvedBlockId,
+		tabletTextAlign,
+	] );
+
+	const hasResponsiveSettings =
+		tabletFontSize || mobileFontSize || tabletTextAlign || mobileTextAlign;
+
 	return (
 		<>
 			<BlockEdit { ...props } />
+			{ deviceType !== 'Desktop' && (
+				<BlockControls group="block">
+					<AlignmentControl
+						value={
+							deviceType === 'Tablet'
+								? tabletTextAlign
+								: mobileTextAlign
+						}
+						onChange={ ( value ) =>
+							setAttributes(
+								deviceType === 'Tablet'
+									? { tabletTextAlign: value ?? '' }
+									: { mobileTextAlign: value ?? '' }
+							)
+						}
+					/>
+				</BlockControls>
+			) }
 			<InspectorControls group="typography">
 				{ deviceType === 'Tablet' && (
 					<FontSizeControl
@@ -219,23 +348,24 @@ function ResponsiveControlsEdit( { BlockEdit, ...props } ) {
 						}
 					/>
 				) }
-				{ deviceType === 'Desktop' &&
-					( tabletFontSize || mobileFontSize ) && (
-						<div className="ph-brc-reset-all">
-							<Button
-								variant="link"
-								isDestructive
-								onClick={ () =>
-									setAttributes( {
-										tabletFontSize: '',
-										mobileFontSize: '',
-									} )
-								}
-							>
-								Reset all responsive font sizes
-							</Button>
-						</div>
-					) }
+				{ deviceType === 'Desktop' && hasResponsiveSettings && (
+					<div className="ph-brc-reset-all">
+						<Button
+							variant="link"
+							isDestructive
+							onClick={ () =>
+								setAttributes( {
+									tabletFontSize: '',
+									mobileFontSize: '',
+									tabletTextAlign: '',
+									mobileTextAlign: '',
+								} )
+							}
+						>
+							Reset all responsive settings
+						</Button>
+					</div>
+				) }
 			</InspectorControls>
 		</>
 	);
