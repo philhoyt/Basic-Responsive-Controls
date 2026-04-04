@@ -32,23 +32,39 @@ add_filter(
 			return $metadata;
 		}
 
-		$metadata['attributes']['blockId']         = array(
+		$metadata['attributes']['blockId']             = array(
 			'type'    => 'string',
 			'default' => '',
 		);
-		$metadata['attributes']['tabletFontSize']  = array(
+		$metadata['attributes']['tabletFontSize']      = array(
 			'type'    => 'string',
 			'default' => '',
 		);
-		$metadata['attributes']['mobileFontSize']  = array(
+		$metadata['attributes']['mobileFontSize']      = array(
 			'type'    => 'string',
 			'default' => '',
 		);
-		$metadata['attributes']['tabletTextAlign'] = array(
+		$metadata['attributes']['tabletTextAlign']     = array(
 			'type'    => 'string',
 			'default' => '',
 		);
-		$metadata['attributes']['mobileTextAlign'] = array(
+		$metadata['attributes']['mobileTextAlign']     = array(
+			'type'    => 'string',
+			'default' => '',
+		);
+		$metadata['attributes']['tabletLineHeight']    = array(
+			'type'    => 'string',
+			'default' => '',
+		);
+		$metadata['attributes']['mobileLineHeight']    = array(
+			'type'    => 'string',
+			'default' => '',
+		);
+		$metadata['attributes']['tabletLetterSpacing'] = array(
+			'type'    => 'string',
+			'default' => '',
+		);
+		$metadata['attributes']['mobileLetterSpacing'] = array(
 			'type'    => 'string',
 			'default' => '',
 		);

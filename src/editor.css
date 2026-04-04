@@ -1,17 +1,23 @@
 /*
- * Our control is injected via InspectorControls group="typography" as a direct
- * child of the ToolsPanel root element, which uses a 2-column CSS grid
- * (class: components-grid). Without grid-column: 1 / -1 our div would occupy
- * one column, appearing squished at half width.
+ * Our controls are injected via InspectorControls group="typography" as direct
+ * children of the ToolsPanel root element, which uses a 2-column CSS grid
+ * (class: components-grid).
+ *
+ * Font size spans both columns (full width). Line height and letter spacing
+ * each occupy one column, mirroring core's "single-column" ToolsPanelItem
+ * pattern so they naturally sit side-by-side.
  */
-.ph-brc-font-size-control {
+.ph-brc-font-size-control,
+.ph-brc-lh-ls-reset,
+.ph-brc-reset-all {
 	grid-column: 1 / -1;
+}
+
+.ph-brc-line-height-control,
+.ph-brc-letter-spacing-control {
+	grid-column: span 1;
 }
 
 .ph-brc-font-size-control .components-button.is-destructive {
 	padding-top: 1rem;
-}
-
-.ph-brc-reset-all {
-	grid-column: 1 / -1;
 }

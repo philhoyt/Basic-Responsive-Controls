@@ -75,16 +75,24 @@ add_filter(
 			return $block_content;
 		}
 
-		$tablet_font_size  = $attrs['tabletFontSize'] ?? '';
-		$mobile_font_size  = $attrs['mobileFontSize'] ?? '';
-		$tablet_text_align = $attrs['tabletTextAlign'] ?? '';
-		$mobile_text_align = $attrs['mobileTextAlign'] ?? '';
+		$tablet_font_size      = $attrs['tabletFontSize'] ?? '';
+		$mobile_font_size      = $attrs['mobileFontSize'] ?? '';
+		$tablet_text_align     = $attrs['tabletTextAlign'] ?? '';
+		$mobile_text_align     = $attrs['mobileTextAlign'] ?? '';
+		$tablet_line_height    = $attrs['tabletLineHeight'] ?? '';
+		$mobile_line_height    = $attrs['mobileLineHeight'] ?? '';
+		$tablet_letter_spacing = $attrs['tabletLetterSpacing'] ?? '';
+		$mobile_letter_spacing = $attrs['mobileLetterSpacing'] ?? '';
 
 		if (
 			empty( $tablet_font_size ) &&
 			empty( $mobile_font_size ) &&
 			empty( $tablet_text_align ) &&
-			empty( $mobile_text_align )
+			empty( $mobile_text_align ) &&
+			empty( $tablet_line_height ) &&
+			empty( $mobile_line_height ) &&
+			empty( $tablet_letter_spacing ) &&
+			empty( $mobile_letter_spacing )
 		) {
 			return $block_content;
 		}
@@ -110,12 +118,28 @@ add_filter(
 			$tablet_rules .= 'text-align:' . ph_brc_sanitize_css_value( $tablet_text_align ) . ' !important;';
 		}
 
+		if ( ! empty( $tablet_line_height ) ) {
+			$tablet_rules .= 'line-height:' . ph_brc_sanitize_css_value( $tablet_line_height ) . ' !important;';
+		}
+
+		if ( ! empty( $tablet_letter_spacing ) ) {
+			$tablet_rules .= 'letter-spacing:' . ph_brc_sanitize_css_value( $tablet_letter_spacing ) . ' !important;';
+		}
+
 		if ( ! empty( $mobile_font_size ) ) {
 			$mobile_rules .= 'font-size:' . ph_brc_sanitize_css_value( ph_brc_resolve_font_size( $mobile_font_size ) ) . ' !important;';
 		}
 
 		if ( ! empty( $mobile_text_align ) ) {
 			$mobile_rules .= 'text-align:' . ph_brc_sanitize_css_value( $mobile_text_align ) . ' !important;';
+		}
+
+		if ( ! empty( $mobile_line_height ) ) {
+			$mobile_rules .= 'line-height:' . ph_brc_sanitize_css_value( $mobile_line_height ) . ' !important;';
+		}
+
+		if ( ! empty( $mobile_letter_spacing ) ) {
+			$mobile_rules .= 'letter-spacing:' . ph_brc_sanitize_css_value( $mobile_letter_spacing ) . ' !important;';
 		}
 
 		if ( ! empty( $tablet_rules ) ) {

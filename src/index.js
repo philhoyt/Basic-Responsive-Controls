@@ -13,6 +13,8 @@ import { RESPONSIVE_BLOCKS } from './config';
 import { useDeviceType } from './hooks/useDeviceType';
 import { useBlockId } from './hooks/useBlockId';
 import { FontSizeControl } from './components/FontSizeControl';
+import { LineHeightControl } from './components/LineHeightControl';
+import { LetterSpacingControl } from './components/LetterSpacingControl';
 
 import './editor.css';
 
@@ -60,6 +62,22 @@ addFilter(
 					type: 'string',
 					default: '',
 				},
+				tabletLineHeight: {
+					type: 'string',
+					default: '',
+				},
+				mobileLineHeight: {
+					type: 'string',
+					default: '',
+				},
+				tabletLetterSpacing: {
+					type: 'string',
+					default: '',
+				},
+				mobileLetterSpacing: {
+					type: 'string',
+					default: '',
+				},
 			},
 		};
 	}
@@ -83,6 +101,10 @@ function ResponsiveControlsEdit( { BlockEdit, ...props } ) {
 		mobileFontSize,
 		tabletTextAlign,
 		mobileTextAlign,
+		tabletLineHeight,
+		mobileLineHeight,
+		tabletLetterSpacing,
+		mobileLetterSpacing,
 	} = attributes;
 
 	const deviceType = useDeviceType();
@@ -100,8 +122,10 @@ function ResponsiveControlsEdit( { BlockEdit, ...props } ) {
 	// it, so we can restore it exactly when switching back to Desktop.
 	const originalFontSizeRef = useRef( null );
 
-	// Same save/restore pattern for text-align.
+	// Same save/restore pattern for text-align, line-height, letter-spacing.
 	const originalTextAlignRef = useRef( null );
+	const originalLineHeightRef = useRef( null );
+	const originalLetterSpacingRef = useRef( null );
 
 	// Hide core Typography panel items in tablet/mobile via JS.
 	// CSS-based hiding (.is-tablet-preview selector) does not work in WP 7.0
@@ -135,15 +159,8 @@ function ResponsiveControlsEdit( { BlockEdit, ...props } ) {
 			return;
 		}
 
-		const observer = new MutationObserver( ( mutations ) => {
-			const relevant = mutations.some( ( m ) =>
-				[ ...m.addedNodes, ...m.removedNodes ].some( ( n ) =>
-					n.classList?.contains( 'components-tools-panel-item' )
-				)
-			);
-			if ( relevant ) {
-				applyHiding();
-			}
+		const observer = new MutationObserver( () => {
+			applyHiding();
 		} );
 		observer.observe( panel, { childList: true, subtree: true } );
 
@@ -305,8 +322,97 @@ function ResponsiveControlsEdit( { BlockEdit, ...props } ) {
 		tabletTextAlign,
 	] );
 
+	// Apply/clear inline line-height on the block element in the editor canvas.
+	useEffect( () => {
+		if ( ! resolvedBlockId ) {
+			return;
+		}
+
+		let lineHeight = null;
+
+		if ( deviceType === 'Tablet' && tabletLineHeight ) {
+			lineHeight = tabletLineHeight;
+		} else if ( deviceType === 'Mobile' && mobileLineHeight ) {
+			lineHeight = mobileLineHeight;
+		}
+
+		const iframe = document.querySelector( 'iframe[name="editor-canvas"]' );
+		const doc = iframe?.contentDocument ?? document;
+		const blockEl = doc.querySelector( `[data-block="${ clientId }"]` );
+
+		if ( ! blockEl ) {
+			return;
+		}
+
+		if ( lineHeight ) {
+			if ( originalLineHeightRef.current === null ) {
+				originalLineHeightRef.current = blockEl.style.lineHeight;
+			}
+			blockEl.style.lineHeight = lineHeight;
+		} else if ( originalLineHeightRef.current !== null ) {
+			blockEl.style.lineHeight = originalLineHeightRef.current;
+			originalLineHeightRef.current = null;
+		} else {
+			blockEl.style.removeProperty( 'line-height' );
+		}
+	}, [
+		clientId,
+		deviceType,
+		mobileLineHeight,
+		resolvedBlockId,
+		tabletLineHeight,
+	] );
+
+	// Apply/clear inline letter-spacing on the block element in the editor canvas.
+	useEffect( () => {
+		if ( ! resolvedBlockId ) {
+			return;
+		}
+
+		let letterSpacing = null;
+
+		if ( deviceType === 'Tablet' && tabletLetterSpacing ) {
+			letterSpacing = tabletLetterSpacing;
+		} else if ( deviceType === 'Mobile' && mobileLetterSpacing ) {
+			letterSpacing = mobileLetterSpacing;
+		}
+
+		const iframe = document.querySelector( 'iframe[name="editor-canvas"]' );
+		const doc = iframe?.contentDocument ?? document;
+		const blockEl = doc.querySelector( `[data-block="${ clientId }"]` );
+
+		if ( ! blockEl ) {
+			return;
+		}
+
+		if ( letterSpacing ) {
+			if ( originalLetterSpacingRef.current === null ) {
+				originalLetterSpacingRef.current = blockEl.style.letterSpacing;
+			}
+			blockEl.style.letterSpacing = letterSpacing;
+		} else if ( originalLetterSpacingRef.current !== null ) {
+			blockEl.style.letterSpacing = originalLetterSpacingRef.current;
+			originalLetterSpacingRef.current = null;
+		} else {
+			blockEl.style.removeProperty( 'letter-spacing' );
+		}
+	}, [
+		clientId,
+		deviceType,
+		mobileLetterSpacing,
+		resolvedBlockId,
+		tabletLetterSpacing,
+	] );
+
 	const hasResponsiveSettings =
-		tabletFontSize || mobileFontSize || tabletTextAlign || mobileTextAlign;
+		tabletFontSize ||
+		mobileFontSize ||
+		tabletTextAlign ||
+		mobileTextAlign ||
+		tabletLineHeight ||
+		mobileLineHeight ||
+		tabletLetterSpacing ||
+		mobileLetterSpacing;
 
 	return (
 		<>
@@ -331,22 +437,98 @@ function ResponsiveControlsEdit( { BlockEdit, ...props } ) {
 			) }
 			<InspectorControls group="typography">
 				{ deviceType === 'Tablet' && (
-					<FontSizeControl
-						label="Tablet"
-						value={ tabletFontSize }
-						onChange={ ( value ) =>
-							setAttributes( { tabletFontSize: value ?? '' } )
-						}
-					/>
+					<>
+						<FontSizeControl
+							label="Tablet"
+							value={ tabletFontSize }
+							onChange={ ( value ) =>
+								setAttributes( {
+									tabletFontSize: value ?? '',
+								} )
+							}
+						/>
+						<LineHeightControl
+							label="Tablet"
+							value={ tabletLineHeight }
+							onChange={ ( value ) =>
+								setAttributes( {
+									tabletLineHeight: value ?? '',
+								} )
+							}
+						/>
+						<LetterSpacingControl
+							label="Tablet"
+							value={ tabletLetterSpacing }
+							onChange={ ( value ) =>
+								setAttributes( {
+									tabletLetterSpacing: value ?? '',
+								} )
+							}
+						/>
+						{ ( tabletLineHeight || tabletLetterSpacing ) && (
+							<div className="ph-brc-lh-ls-reset">
+								<Button
+									variant="link"
+									isDestructive
+									onClick={ () =>
+										setAttributes( {
+											tabletLineHeight: '',
+											tabletLetterSpacing: '',
+										} )
+									}
+								>
+									Reset Tablet to default
+								</Button>
+							</div>
+						) }
+					</>
 				) }
 				{ deviceType === 'Mobile' && (
-					<FontSizeControl
-						label="Mobile"
-						value={ mobileFontSize }
-						onChange={ ( value ) =>
-							setAttributes( { mobileFontSize: value ?? '' } )
-						}
-					/>
+					<>
+						<FontSizeControl
+							label="Mobile"
+							value={ mobileFontSize }
+							onChange={ ( value ) =>
+								setAttributes( {
+									mobileFontSize: value ?? '',
+								} )
+							}
+						/>
+						<LineHeightControl
+							label="Mobile"
+							value={ mobileLineHeight }
+							onChange={ ( value ) =>
+								setAttributes( {
+									mobileLineHeight: value ?? '',
+								} )
+							}
+						/>
+						<LetterSpacingControl
+							label="Mobile"
+							value={ mobileLetterSpacing }
+							onChange={ ( value ) =>
+								setAttributes( {
+									mobileLetterSpacing: value ?? '',
+								} )
+							}
+						/>
+						{ ( mobileLineHeight || mobileLetterSpacing ) && (
+							<div className="ph-brc-lh-ls-reset">
+								<Button
+									variant="link"
+									isDestructive
+									onClick={ () =>
+										setAttributes( {
+											mobileLineHeight: '',
+											mobileLetterSpacing: '',
+										} )
+									}
+								>
+									Reset Mobile to default
+								</Button>
+							</div>
+						) }
+					</>
 				) }
 				{ deviceType === 'Desktop' && hasResponsiveSettings && (
 					<div className="ph-brc-reset-all">
@@ -359,6 +541,10 @@ function ResponsiveControlsEdit( { BlockEdit, ...props } ) {
 									mobileFontSize: '',
 									tabletTextAlign: '',
 									mobileTextAlign: '',
+									tabletLineHeight: '',
+									mobileLineHeight: '',
+									tabletLetterSpacing: '',
+									mobileLetterSpacing: '',
 								} )
 							}
 						>
