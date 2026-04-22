@@ -1,3 +1,10 @@
+/* Marks our responsive toolbar controls so they're visually distinct from core ones */
+.ph-brc-responsive-toolbar-control {
+	background: rgba( 0, 124, 186, 0.08 );
+	border-radius: 2px;
+	border-top: 2px solid #007cba;
+}
+
 /*
  * Our controls are injected via InspectorControls group="typography" as direct
  * children of the ToolsPanel root element, which uses a 2-column CSS grid

@@ -59,7 +59,8 @@ add_filter(
 	'render_block',
 	function ( string $block_content, array $block ): string {
 		$responsive_blocks = array(
-			'core/heading' => array( 'fontSize' ),
+			'core/heading'   => array( 'fontSize' ),
+			'core/paragraph' => array( 'fontSize' ),
 		);
 
 		$block_name = $block['blockName'] ?? '';

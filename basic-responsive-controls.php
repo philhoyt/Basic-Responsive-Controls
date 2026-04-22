@@ -26,7 +26,7 @@ require_once __DIR__ . '/includes/render.php';
 add_filter(
 	'block_type_metadata',
 	function ( $metadata ) {
-		$responsive_blocks = array( 'core/heading' );
+		$responsive_blocks = array( 'core/heading', 'core/paragraph' );
 
 		if ( ! in_array( $metadata['name'] ?? '', $responsive_blocks, true ) ) {
 			return $metadata;

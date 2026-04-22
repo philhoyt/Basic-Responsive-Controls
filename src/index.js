@@ -70,6 +70,14 @@ addFilter(
 					type: 'string',
 					default: '',
 				},
+				tabletTextAlign: {
+					type: 'string',
+					default: '',
+				},
+				mobileTextAlign: {
+					type: 'string',
+					default: '',
+				},
 				tabletLetterSpacing: {
 					type: 'string',
 					default: '',
@@ -419,20 +427,22 @@ function ResponsiveControlsEdit( { BlockEdit, ...props } ) {
 			<BlockEdit { ...props } />
 			{ deviceType !== 'Desktop' && (
 				<BlockControls group="block">
-					<AlignmentControl
-						value={
-							deviceType === 'Tablet'
-								? tabletTextAlign
-								: mobileTextAlign
-						}
-						onChange={ ( value ) =>
-							setAttributes(
+					<div className="ph-brc-responsive-toolbar-control">
+						<AlignmentControl
+							value={
 								deviceType === 'Tablet'
-									? { tabletTextAlign: value ?? '' }
-									: { mobileTextAlign: value ?? '' }
-							)
-						}
-					/>
+									? tabletTextAlign
+									: mobileTextAlign
+							}
+							onChange={ ( value ) =>
+								setAttributes(
+									deviceType === 'Tablet'
+										? { tabletTextAlign: value ?? '' }
+										: { mobileTextAlign: value ?? '' }
+								)
+							}
+						/>
+					</div>
 				</BlockControls>
 			) }
 			<InspectorControls group="typography">

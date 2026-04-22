@@ -10,4 +10,7 @@ export const RESPONSIVE_BLOCKS = {
 	'core/heading': {
 		controls: [ 'fontSize', 'textAlign' ],
 	},
+	'core/paragraph': {
+		controls: [ 'fontSize', 'textAlign' ],
+	},
 };
