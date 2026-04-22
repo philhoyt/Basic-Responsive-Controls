@@ -1,6 +1,6 @@
-/* Marks our responsive toolbar controls so they're visually distinct from core ones */
+/* Marks our responsive toolbar controls visually distinct from core ones */
 .ph-brc-responsive-toolbar-control {
-	background: rgba( 0, 124, 186, 0.08 );
+	background: rgba(0, 124, 186, 0.08);
 	border-radius: 2px;
 	border-top: 2px solid #007cba;
 }
