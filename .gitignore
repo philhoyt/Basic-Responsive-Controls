@@ -2,3 +2,5 @@ node_modules
 vendor
 docs
 *.zip
+src/.DS_Store
+.DS_Store
