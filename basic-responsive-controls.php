@@ -1,6 +1,6 @@
 <?php
 /**
- * Plugin Name: PH Basic Responsive Controls
+ * Plugin Name: Basic Responsive Controls
  * Plugin URI:  https://github.com/philhoyt/Basic-Responsive-Controls
  * Description: Responsive typography controls for the WordPress block editor.
  * Version:     1.0.0
