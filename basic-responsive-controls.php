@@ -17,6 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+require_once __DIR__ . '/includes/migrate.php';
 require_once __DIR__ . '/includes/admin.php';
 require_once __DIR__ . '/includes/render.php';
 
