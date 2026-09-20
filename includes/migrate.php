@@ -251,3 +251,207 @@ function ph_brc_get_font_size_slugs(): array {
 
 	return array_values( array_unique( $slugs ) );
 }
+
+/**
+ * SQL WHERE fragment matching posts whose content carries legacy attributes.
+ *
+ * Patterns include the surrounding quote and colon (`"tabletFontSize":"`) so
+ * prose that merely mentions an attribute name does not match.
+ *
+ * @param int[] $exclude_ids Post IDs to exclude from the match.
+ * @return string Prepared WHERE clause (without the leading WHERE keyword).
+ */
+function ph_brc_legacy_where_sql( array $exclude_ids = array() ): string {
+	global $wpdb;
+
+	$likes = array();
+	$args  = array();
+	foreach ( ph_brc_legacy_attribute_keys() as $key ) {
+		$likes[] = 'post_content LIKE %s';
+		$args[]  = '%' . $wpdb->esc_like( '"' . $key . '":"' ) . '%';
+	}
+
+	$where = '(' . implode( ' OR ', $likes ) . ")
+		AND post_type <> 'revision'
+		AND post_status NOT IN ( 'trash', 'auto-draft' )";
+
+	$exclude_ids = array_filter( array_map( 'intval', $exclude_ids ) );
+	if ( ! empty( $exclude_ids ) ) {
+		$where .= ' AND ID NOT IN (' . implode( ',', array_fill( 0, count( $exclude_ids ), '%d' ) ) . ')';
+		$args   = array_merge( $args, $exclude_ids );
+	}
+
+	// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- placeholders are built above and every value is passed through prepare().
+	return $wpdb->prepare( $where, $args );
+}
+
+/**
+ * Count posts that still carry legacy attributes.
+ *
+ * The result is cached in a transient for 12 hours; the migration runner
+ * deletes the transient before it starts.
+ *
+ * @param bool $force Bypass and refresh the cached count.
+ * @return int Number of matching posts.
+ */
+function ph_brc_count_legacy_posts( bool $force = false ): int {
+	global $wpdb;
+
+	if ( ! $force ) {
+		$cached = get_transient( 'ph_brc_legacy_count' );
+		if ( false !== $cached ) {
+			return (int) $cached;
+		}
+	}
+
+	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared -- one-off LIKE scan; the WHERE clause is prepared and the count is cached in a transient.
+	$count = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->posts} WHERE " . ph_brc_legacy_where_sql() );
+
+	set_transient( 'ph_brc_legacy_count', $count, 12 * HOUR_IN_SECONDS );
+
+	return $count;
+}
+
+/**
+ * IDs of posts that still carry legacy attributes.
+ *
+ * @param int   $limit       Maximum number of IDs to return.
+ * @param int[] $exclude_ids Post IDs already handled in the current run.
+ * @return int[] Post IDs.
+ */
+function ph_brc_get_legacy_post_ids( int $limit, array $exclude_ids = array() ): array {
+	global $wpdb;
+
+	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared -- migration batch query; the WHERE clause and limit are prepared.
+	$ids = $wpdb->get_col(
+		$wpdb->prepare(
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- see above.
+			"SELECT ID FROM {$wpdb->posts} WHERE " . ph_brc_legacy_where_sql( $exclude_ids ) . ' ORDER BY ID ASC LIMIT %d',
+			max( 1, $limit )
+		)
+	);
+
+	return array_map( 'intval', (array) $ids );
+}
+
+/**
+ * Migrate a single post's content.
+ *
+ * @param int      $post_id Post ID.
+ * @param string[] $slugs   Registered font size preset slugs.
+ * @return int|WP_Error Number of blocks migrated (0 when nothing changed), or an error.
+ */
+function ph_brc_migrate_post( int $post_id, array $slugs ) {
+	$post = get_post( $post_id );
+	if ( ! $post instanceof WP_Post ) {
+		return new WP_Error(
+			'ph_brc_missing_post',
+			sprintf(
+				/* translators: %d: post ID */
+				__( 'Post %d could not be loaded.', 'ph-basic-responsive-controls' ),
+				$post_id
+			)
+		);
+	}
+
+	$result = ph_brc_migrate_blocks( parse_blocks( $post->post_content ), $slugs );
+	if ( 0 === $result['changed'] ) {
+		return 0;
+	}
+
+	$updated = wp_update_post(
+		wp_slash(
+			array(
+				'ID'           => $post_id,
+				'post_content' => serialize_blocks( $result['blocks'] ),
+			)
+		),
+		true
+	);
+
+	if ( is_wp_error( $updated ) ) {
+		return $updated;
+	}
+
+	if ( 0 === $updated ) {
+		return new WP_Error(
+			'ph_brc_update_failed',
+			sprintf(
+				/* translators: %d: post ID */
+				__( 'Post %d could not be updated.', 'ph-basic-responsive-controls' ),
+				$post_id
+			)
+		);
+	}
+
+	/**
+	 * Fires after a post's legacy responsive attributes were migrated.
+	 *
+	 * @param int $post_id        Post ID.
+	 * @param int $blocks_changed Number of blocks rewritten in the post.
+	 */
+	do_action( 'ph_brc_migrated_post', $post_id, $result['changed'] );
+
+	return $result['changed'];
+}
+
+/**
+ * Run the migration for as many posts as fit in the time budget, then
+ * redirect back to the referring admin screen.
+ *
+ * Hooked to `admin_post_ph_brc_migrate`. Requires `manage_options` and
+ * `unfiltered_html` so content is written back without KSES filtering.
+ */
+function ph_brc_run_migration(): void {
+	if ( ! current_user_can( 'manage_options' ) || ! current_user_can( 'unfiltered_html' ) ) {
+		wp_die(
+			esc_html__( 'You do not have permission to run this migration.', 'ph-basic-responsive-controls' ),
+			'',
+			array( 'response' => 403 )
+		);
+	}
+
+	check_admin_referer( 'ph_brc_migrate' );
+
+	delete_transient( 'ph_brc_legacy_count' );
+
+	$slugs     = ph_brc_get_font_size_slugs();
+	$started   = microtime( true );
+	$processed = array();
+	$result    = array(
+		'posts_updated'   => 0,
+		'blocks_migrated' => 0,
+		'skipped'         => 0,
+		'errors'          => array(),
+		'remaining'       => 0,
+	);
+
+	do {
+		$ids = ph_brc_get_legacy_post_ids( 25, $processed );
+		if ( empty( $ids ) ) {
+			break;
+		}
+
+		foreach ( $ids as $post_id ) {
+			$processed[] = $post_id;
+			$migrated    = ph_brc_migrate_post( $post_id, $slugs );
+
+			if ( is_wp_error( $migrated ) ) {
+				$result['errors'][ $post_id ] = $migrated->get_error_message();
+			} elseif ( 0 === $migrated ) {
+				++$result['skipped'];
+			} else {
+				++$result['posts_updated'];
+				$result['blocks_migrated'] += $migrated;
+			}
+		}
+	} while ( ( microtime( true ) - $started ) < 20 );
+
+	$result['remaining'] = ph_brc_count_legacy_posts( true );
+
+	set_transient( 'ph_brc_migration_result', $result, 5 * MINUTE_IN_SECONDS );
+
+	$referer = wp_get_referer();
+	wp_safe_redirect( $referer ? $referer : admin_url( 'plugins.php' ) );
+	exit;
+}

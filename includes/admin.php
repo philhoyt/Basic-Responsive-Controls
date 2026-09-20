@@ -32,3 +32,5 @@ function ph_brc_is_legacy_ui_enabled(): bool {
 	 */
 	return (bool) apply_filters( 'ph_brc_legacy_ui_enabled', $enabled );
 }
+
+add_action( 'admin_post_ph_brc_migrate', 'ph_brc_run_migration' );
