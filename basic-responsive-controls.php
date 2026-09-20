@@ -17,6 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+require_once __DIR__ . '/includes/admin.php';
 require_once __DIR__ . '/includes/render.php';
 
 /**
@@ -85,8 +86,12 @@ add_action(
 			return;
 		}
 
-		$asset = require $asset_file;
+		$asset     = require $asset_file;
+		$legacy_ui = ph_brc_is_legacy_ui_enabled();
 
+		// The script is always loaded: it registers the legacy attributes so
+		// unmigrated content is not stripped on re-save. The editor UI inside
+		// it is only registered when the legacy UI flag is true.
 		wp_enqueue_script(
 			'ph-basic-responsive-controls-editor',
 			plugins_url( 'build/index.js', __FILE__ ),
@@ -94,6 +99,16 @@ add_action(
 			$asset['version'],
 			true
 		);
+
+		wp_add_inline_script(
+			'ph-basic-responsive-controls-editor',
+			'window.phBrc = ' . wp_json_encode( array( 'legacyUi' => $legacy_ui ) ) . ';',
+			'before'
+		);
+
+		if ( ! $legacy_ui ) {
+			return;
+		}
 
 		wp_enqueue_style(
 			'ph-basic-responsive-controls-editor',
