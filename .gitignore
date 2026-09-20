@@ -4,3 +4,7 @@ docs
 *.zip
 src/.DS_Store
 .DS_Store
+
+# Local working notes and caches
+plans/
+.phpunit.result.cache
