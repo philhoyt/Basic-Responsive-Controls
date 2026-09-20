@@ -1,0 +1,21 @@
+<!-- wp:group {"layout":{"type":"constrained"}} -->
+<div class="wp-block-group"><!-- wp:heading {"blockId":"a1b2c3d4-0000-4000-8000-000000000001","tabletFontSize":"large","mobileFontSize":"","tabletLineHeight":"","mobileLineHeight":"","tabletTextAlign":"","mobileTextAlign":"center","tabletLetterSpacing":"","mobileLetterSpacing":"","style":{"typography":{"fontSize":"2.5rem"}}} -->
+<h2 class="wp-block-heading" style="font-size:2.5rem">Heading with tablet preset and mobile alignment</h2>
+<!-- /wp:heading -->
+
+<!-- wp:paragraph {"blockId":"a1b2c3d4-0000-4000-8000-000000000002","tabletFontSize":"clamp(0.9rem, 2vw, 1.1rem)","mobileFontSize":"","tabletLineHeight":"1.2","mobileLineHeight":"1.1","tabletTextAlign":"","mobileTextAlign":"","tabletLetterSpacing":"0.05em","mobileLetterSpacing":""} -->
+<p>Paragraph with raw tablet font size, tablet and mobile line height, tablet letter spacing.</p>
+<!-- /wp:paragraph --></div>
+<!-- /wp:group -->
+
+<!-- wp:heading {"level":3,"blockId":"a1b2c3d4-0000-4000-8000-000000000003","tabletFontSize":"medium","mobileFontSize":"small","tabletLineHeight":"","mobileLineHeight":"","tabletTextAlign":"right","mobileTextAlign":"","tabletLetterSpacing":"","mobileLetterSpacing":"","style":{"@tablet":{"typography":{"fontSize":"var:preset|font-size|x-large"}}}} -->
+<h3 class="wp-block-heading">Heading with a pre-existing core tablet value that must win</h3>
+<!-- /wp:heading -->
+
+<!-- wp:paragraph {"blockId":"a1b2c3d4-0000-4000-8000-000000000004","tabletFontSize":"","mobileFontSize":"","tabletLineHeight":"","mobileLineHeight":"","tabletTextAlign":"","mobileTextAlign":"","tabletLetterSpacing":"","mobileLetterSpacing":""} -->
+<p>Paragraph that only carries a blockId and empty legacy values — the empty keys and blockId must be stripped and no styles written.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>Plain paragraph with no plugin attributes — café “quotes” — must survive re-serialization untouched.</p>
+<!-- /wp:paragraph -->

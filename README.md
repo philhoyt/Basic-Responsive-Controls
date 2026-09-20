@@ -1,76 +1,86 @@
 # Basic Responsive Controls
 
-A WordPress plugin that adds breakpoint-specific typography controls to the block editor. When previewing in Tablet or Mobile mode, dedicated controls appear for font size, text alignment, line height, and letter spacing — independently set per breakpoint.
+> **Sunset.** WordPress 7.1 provides responsive typography natively. Version 1.1.0 is the final feature release: it migrates existing content to core and then gets out of the way.
 
-On the frontend, scoped inline CSS is injected with the block output using media queries. No separate stylesheet required.
+## Why this plugin is no longer needed
 
-## Features
+WordPress 7.1 added responsive style states to every core block support. In the editor, open the Preview dropdown, turn on **Responsive styles**, and switch to Tablet or Mobile. The standard Typography panel and the Align text toolbar button then write values for that viewport only, stored as `style["@tablet"]` and `style["@mobile"]` on the block. Core uses the same 782px and 480px breakpoints this plugin hardcoded, and themes can change them in `theme.json` under `settings.viewport`.
 
-- **Font size** — independent values for tablet (max-width: 782px) and mobile (max-width: 480px). Supports all theme font size presets and custom CSS values (`clamp()`, `rem`, `em`, `px`, etc.).
-- **Text alignment** — per-breakpoint alignment (left, center, right, justify) via a toolbar control, visible only in Tablet or Mobile preview mode.
-- **Line height** — per-breakpoint line height using WordPress's native line height control.
-- **Letter spacing** — per-breakpoint letter spacing using WordPress's letter spacing control.
-- **Reset controls** — reset any individual breakpoint value, or reset all responsive settings at once from Desktop mode.
-- **Live editor preview** — changes are immediately reflected in the editor canvas.
-- **Per-block scoped output** — each block gets its own class and style rule; no global stylesheet.
-- No external JavaScript dependencies.
+Every control this plugin added to the Heading and Paragraph blocks now has a native equivalent:
 
-## Supported Blocks
+| This plugin (1.0.0) | WordPress 7.1 |
+|---|---|
+| Font Size [Tablet] / [Mobile] | Typography > Font size, with Responsive styles on |
+| Line Height [Tablet] / [Mobile] | Typography > Line height |
+| Letter Spacing [Tablet] / [Mobile] | Typography > Letter spacing |
+| Align text [Tablet] / [Mobile] | Align text toolbar button |
+| `@media (max-width: 782px)` | `@media (480px < width <= 782px)` |
+| `@media (max-width: 480px)` | `@media (width <= 480px)` |
 
-| Block | Font Size | Text Align | Line Height | Letter Spacing |
+On 7.1 the old controls were worse than redundant: the plugin hid core's Typography panel items and Align text dropdown while previewing Tablet or Mobile, which are exactly the controls core now uses for responsive editing.
+
+Further reading: the [WordPress 7.1 responsive block styles dev note](https://make.wordpress.org/core/2026/08/05/responsive-block-styles-and-configurable-viewports-in-wordpress-7-1/).
+
+## What 1.1.0 does
+
+**On WordPress 7.1 or later**
+
+- The plugin's tablet and mobile editor controls are not loaded, so core's responsive controls are no longer hidden.
+- A notice on the Dashboard and Plugins screens counts posts that still carry this plugin's attributes and offers a **Migrate now** button.
+- The migration rewrites those attributes into core's responsive style states. It covers posts, pages, custom post types, synced patterns, templates, and template parts, and recurses into nested blocks. Existing core values are never overwritten. A tablet-only value is also copied to mobile because the old tablet rule applied at `max-width: 782px`, which included phones.
+- Until a post is migrated, its legacy values keep rendering on the front end exactly as in 1.0.0.
+- When nothing is left to migrate, the notice says the plugin is safe to deactivate.
+
+**On WordPress 6.3 to 7.0**
+
+Everything works as in 1.0.0. Upgrade WordPress to 7.1, then migrate and deactivate.
+
+## How to migrate
+
+1. Back up the database. The migration rewrites post content.
+2. Update WordPress to 7.1 or later and update this plugin to 1.1.0.
+3. Go to Dashboard or Plugins and click **Migrate N posts now** in the notice. Large sites may need more than one click; each run stops after about 20 seconds and reports what is left.
+4. When the notice reports zero posts remaining, deactivate and delete the plugin.
+
+Migration is one-way. Migrated content renders responsively only on WordPress 7.1 or later, and it follows the theme's `settings.viewport` breakpoints if the theme defines its own. On multisite the migration must be run by a super admin (it requires the `unfiltered_html` capability so content is written back without filtering).
+
+### Migration mapping
+
+For each of `fontSize`, `lineHeight`, `letterSpacing`, and `textAlign` on `core/heading` and `core/paragraph`:
+
+| Existing core tablet | Existing core mobile | Legacy tablet | Legacy mobile | Result |
 |---|---|---|---|---|
-| `core/heading` | ✓ | ✓ | ✓ | ✓ |
-| `core/paragraph` | ✓ | ✓ | ✓ | ✓ |
+| — | — | T | — | `@tablet` = T, `@mobile` = T |
+| — | — | T | M | `@tablet` = T, `@mobile` = M |
+| — | — | — | M | `@mobile` = M |
+| CT | — | T | — | `@tablet` = CT, `@mobile` = T |
+| — | CM | T | — | `@tablet` = T, `@mobile` = CM |
+| CT | CM | any | any | unchanged |
+
+Font size preset slugs become `var:preset|font-size|{slug}`; raw CSS values are copied verbatim. After conversion, `blockId` and all eight legacy attributes are removed from the block.
+
+## Hooks
+
+- `ph_brc_legacy_ui_enabled` (filter, `bool`) — force the legacy editor UI on or off. Defaults to true on WordPress < 7.1.
+- `ph_brc_migrated_post` (action, `int $post_id, int $blocks_changed`) — fires after a post's content was rewritten.
 
 ## Requirements
 
-- WordPress 6.3+
+- WordPress 6.3+ (7.1+ for migration)
 - PHP 7.4+
 
 ## Installation
 
-1. Download the latest `basic-responsive-controls.zip` from the [releases page](https://github.com/philhoyt/Basic-Responsive-Controls/releases).
+1. Download `basic-responsive-controls.zip` from the [releases page](https://github.com/philhoyt/Basic-Responsive-Controls/releases).
 2. Go to **Plugins > Add New Plugin > Upload Plugin** and upload the zip file.
 3. Activate through the Plugins screen.
-4. Add a Heading or Paragraph block, switch to Tablet or Mobile preview mode, and open the Typography panel in the block inspector.
+4. On WordPress 7.1 or later, follow the migration notice on the Dashboard.
 
-## How It Works
+## Legacy behaviour (WordPress < 7.1)
 
-**Editor:** A Higher-Order Component wraps supported block edit components. In Tablet or Mobile preview mode it renders breakpoint-specific controls for font size, line height, and letter spacing in the Typography panel, and a text alignment picker in the block toolbar. Changes are applied as inline styles to the block element in the editor canvas for immediate preview.
+The editor wraps the Heading and Paragraph edit components. In Tablet or Mobile preview mode it renders breakpoint-specific font size, line height, and letter spacing controls in the Typography panel and a text alignment picker in the toolbar, applying the values as inline styles on the canvas. On the front end a `render_block` filter adds a scoping class (`phbrc-{id}`) and prepends a `<style>` tag with media query rules; preset slugs resolve to `var(--wp--preset--font-size--{slug})`.
 
-**Frontend:** A `render_block` filter adds a unique scoping class (`phbrc-{id}`) to the block's outermost element and prepends a `<style>` tag containing media query rules. Font size presets are resolved to CSS custom properties (`var(--wp--preset--font-size--{slug})`); raw values pass through as-is. Mobile rules are output after tablet rules to ensure correct cascade override behavior.
-
-## Block Attributes
-
-Each supported block gains the following attributes:
-
-| Attribute | Type | Description |
-|---|---|---|
-| `blockId` | string | Unique ID used for the scoping CSS class |
-| `tabletFontSize` | string | Font size value or preset slug at ≤782px |
-| `mobileFontSize` | string | Font size value or preset slug at ≤480px |
-| `tabletTextAlign` | string | Text alignment at ≤782px |
-| `mobileTextAlign` | string | Text alignment at ≤480px |
-| `tabletLineHeight` | string | Line height value at ≤782px |
-| `mobileLineHeight` | string | Line height value at ≤480px |
-| `tabletLetterSpacing` | string | Letter spacing value at ≤782px |
-| `mobileLetterSpacing` | string | Letter spacing value at ≤480px |
-
-## Adding Support for Additional Blocks
-
-**JavaScript** — add an entry to `src/config.js`:
-```js
-export const RESPONSIVE_BLOCKS = {
-    'core/heading': { controls: [ 'fontSize' ] },
-    'core/paragraph': { controls: [ 'fontSize' ] },
-    'core/list-item': { controls: [ 'fontSize' ] }, // example
-};
-```
-
-**PHP** — add a matching entry to the `$responsive_blocks` array in `includes/render.php`:
-```php
-$responsive_blocks = [ 'core/heading', 'core/paragraph', 'core/list-item' ];
-```
+Legacy attributes on each supported block: `blockId`, `tabletFontSize`, `mobileFontSize`, `tabletTextAlign`, `mobileTextAlign`, `tabletLineHeight`, `mobileLineHeight`, `tabletLetterSpacing`, `mobileLetterSpacing`. These stay registered on every WordPress version so unmigrated content is not stripped on re-save.
 
 ## Development
 
@@ -84,8 +94,11 @@ npm run lint:js     # Lint JavaScript
 npm run lint:css    # Lint CSS
 composer phpcs      # Lint PHP
 composer phpcbf     # Auto-fix PHP
+composer test       # PHPUnit tests for the migration transform
 npm run plugin-zip  # Package for distribution
 ```
+
+`tests/fixtures/legacy-post-content.html` holds representative 1.0.0 content for manual verification of the migration.
 
 ## License
 
