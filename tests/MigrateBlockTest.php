@@ -229,16 +229,28 @@ final class MigrateBlockTest extends TestCase {
 	}
 
 	/**
-	 * Block with only empty legacy values is unchanged.
+	 * Block with only empty legacy values has the keys stripped and no styles written.
 	 */
-	public function test_block_with_only_empty_legacy_values_is_unchanged(): void {
+	public function test_block_with_only_empty_legacy_values_has_keys_stripped(): void {
 		$heading = $this->block(
 			array(
 				'blockId'        => 'abc',
 				'tabletFontSize' => '',
 				'mobileFontSize' => '   ',
+				'level'          => 3,
 			)
 		);
+		$result  = ph_brc_migrate_block( $heading, self::SLUGS );
+
+		$this->assertSame( 1, $result['changed'] );
+		$this->assertSame( array( 'level' => 3 ), $result['block']['attrs'] );
+	}
+
+	/**
+	 * Block carrying only a blockId is left untouched.
+	 */
+	public function test_block_with_only_block_id_is_unchanged(): void {
+		$heading = $this->block( array( 'blockId' => 'abc' ) );
 		$result  = ph_brc_migrate_block( $heading, self::SLUGS );
 
 		$this->assertSame( 0, $result['changed'] );

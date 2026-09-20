@@ -137,15 +137,22 @@ function ph_brc_migrate_block( array $block, array $font_size_slugs ): array {
 		);
 	}
 
-	$has_legacy_value = false;
+	/*
+	 * Any legacy key present, even with an empty value, marks the block for
+	 * rewriting. Empty keys carry no style but still match the discovery
+	 * query, so they must be stripped for the remaining count to reach zero.
+	 * A block carrying only `blockId` is left alone: it is not discoverable
+	 * and rewriting it would touch posts for no visible change.
+	 */
+	$has_legacy_key = false;
 	foreach ( ph_brc_legacy_attribute_keys() as $key ) {
-		if ( null !== ph_brc_non_empty_string( $attrs, $key ) ) {
-			$has_legacy_value = true;
+		if ( array_key_exists( $key, $attrs ) ) {
+			$has_legacy_key = true;
 			break;
 		}
 	}
 
-	if ( ! $has_legacy_value ) {
+	if ( ! $has_legacy_key ) {
 		return array(
 			'block'   => $block,
 			'changed' => $changed,
