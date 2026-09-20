@@ -329,14 +329,16 @@ function ph_brc_count_legacy_posts( bool $force = false ): int {
 function ph_brc_get_legacy_post_ids( int $limit, array $exclude_ids = array() ): array {
 	global $wpdb;
 
-	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared -- migration batch query; the WHERE clause and limit are prepared.
-	$ids = $wpdb->get_col(
-		$wpdb->prepare(
-			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- see above.
-			"SELECT ID FROM {$wpdb->posts} WHERE " . ph_brc_legacy_where_sql( $exclude_ids ) . ' ORDER BY ID ASC LIMIT %d',
-			max( 1, $limit )
-		)
-	);
+	/*
+	 * The WHERE clause is already prepared (it contains literal LIKE
+	 * wildcards), so the LIMIT is prepared separately rather than running the
+	 * whole statement through prepare() a second time.
+	 */
+	$where = ph_brc_legacy_where_sql( $exclude_ids );
+	$limit = $wpdb->prepare( 'LIMIT %d', max( 1, $limit ) );
+
+	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- migration batch query; both fragments are prepared above.
+	$ids = $wpdb->get_col( "SELECT ID FROM {$wpdb->posts} WHERE {$where} ORDER BY ID ASC {$limit}" );
 
 	return array_map( 'intval', (array) $ids );
 }
