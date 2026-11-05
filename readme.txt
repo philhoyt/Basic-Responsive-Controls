@@ -2,59 +2,87 @@
 Contributors: philhoyt
 Tags: block editor, typography, responsive, font size, gutenberg
 Requires at least: 6.3
-Tested up to: 7.0
+Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.0.0
+Stable tag: 1.1.0
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Responsive typography controls for the WordPress block editor. Set different font sizes for tablet and mobile breakpoints, per block.
+Sunset. WordPress 7.1 provides responsive typography natively. This final release migrates existing content to core and then gets out of the way.
 
 == Description ==
 
-Basic Responsive Controls adds breakpoint-specific font size controls to the block editor. When previewing in Tablet or Mobile mode, a dedicated font size picker replaces the default control in the Typography panel.
+**This plugin is sunset.** WordPress 7.1 added responsive style states to every core block support. Open the Preview dropdown in the editor, turn on "Responsive styles", switch to Tablet or Mobile, and the standard Typography panel and text alignment toolbar write values for that viewport only. Core uses the same 782px and 480px breakpoints this plugin hardcoded, and themes can change them in theme.json under `settings.viewport`.
 
-On the frontend, scoped CSS is injected inline with the block output using media queries. Responsive font sizes work without any additional stylesheet or configuration.
+Every control this plugin added now has a native equivalent on the Heading and Paragraph blocks:
 
-* Set a font size for tablet (max-width: 782px) and mobile (max-width: 480px) independently.
-* Controls appear in the Typography panel, only visible when in Tablet or Mobile preview mode.
-* Supports all theme font size presets as well as custom values.
-* Scoped per-block — each heading gets its own style rule, no global overrides.
-* Reset to theme default per breakpoint at any time.
-* No JavaScript dependencies beyond what WordPress already loads.
+* Font size (tablet, mobile) → Typography panel > Font size, with Responsive styles on.
+* Line height → Typography panel > Line height.
+* Letter spacing → Typography panel > Letter spacing.
+* Text alignment → Align text toolbar button.
 
-Supported blocks: Heading (`core/heading`).
+No further features will be added. Version 1.1.0 exists to move sites off the plugin cleanly.
+
+= What 1.1.0 does =
+
+**On WordPress 7.1 or later**
+
+* The plugin's tablet and mobile controls are no longer loaded, so core's own responsive controls are not hidden.
+* A notice on the Dashboard and Plugins screens counts the posts that still carry this plugin's attributes and offers a **Migrate now** button.
+* The migration rewrites those attributes into WordPress's own responsive styles (`style["@tablet"]` and `style["@mobile"]`), including synced patterns, templates, and template parts. Existing core values are never overwritten. A tablet-only value is also copied to mobile so the page renders exactly as before, because the old tablet rule applied to phones too.
+* Until a post is migrated, its legacy values keep rendering on the front end exactly as in 1.0.0.
+* When nothing is left to migrate, the notice says the plugin is safe to deactivate.
+
+**On WordPress 6.3 to 7.0**
+
+Everything works as in 1.0.0. Upgrade WordPress to 7.1, then migrate and deactivate.
+
+= How to migrate =
+
+1. Back up the database. The migration rewrites post content.
+2. Update WordPress to 7.1 or later and update this plugin to 1.1.0.
+3. Go to Dashboard or Plugins and click **Migrate N posts now** in the notice. Large sites may need to click more than once; each run stops after about 20 seconds and reports what is left.
+4. When the notice reports zero posts remaining, deactivate and delete the plugin.
+
+Migration is one-way. Migrated content renders responsively only on WordPress 7.1 or later, and it follows the theme's `settings.viewport` breakpoints if the theme defines its own. On multisite the migration must be run by a super admin.
 
 == Installation ==
 
-1. Download the latest `basic-responsive-controls.zip` from the [GitHub releases page](https://github.com/philhoyt/Basic-Responsive-Controls/releases).
+1. Download `basic-responsive-controls.zip` from the [GitHub releases page](https://github.com/philhoyt/Basic-Responsive-Controls/releases).
 2. Go to **Plugins > Add New Plugin > Upload Plugin** and upload the zip file.
 3. Activate through the Plugins screen.
-4. Edit any post or page, add a Heading block, and switch to Tablet or Mobile preview mode in the editor toolbar to see the responsive font size controls.
+4. On WordPress 7.1 or later, follow the migration notice on the Dashboard.
 
 == Frequently Asked Questions ==
 
-= Which breakpoints are used? =
+= Do I need this plugin on a new site? =
 
-Tablet: `max-width: 782px`, which matches the WordPress admin breakpoint. Mobile: `max-width: 480px`.
+No. Use WordPress 7.1's built-in Responsive styles instead.
 
-= Does this affect desktop font sizes? =
+= What happens if I deactivate before migrating? =
 
-No. The plugin only outputs styles for tablet and mobile. The desktop font size set via the core Typography control is untouched.
+The legacy attributes stay in the post content but nothing renders them, so tablet and mobile overrides disappear from the front end. Reactivate, migrate, then deactivate.
 
-= How are font sizes output on the frontend? =
+= Which breakpoints did the old plugin use? =
 
-A `<style>` tag is prepended to the block's HTML output containing scoped media query rules. The block element receives a unique class (`phbrc-{id}`) used to scope the rules to that specific block instance.
+Tablet `max-width: 782px` and mobile `max-width: 480px`. WordPress 7.1 defaults to the same values, expressed as `width <= 480px` for mobile and `480px < width <= 782px` for tablet.
 
-= Does it work with theme font size presets? =
+= How were font sizes output before migration? =
 
-Yes. Preset slugs are resolved to CSS custom properties (e.g. `var(--wp--preset--font-size--large)`), so they respect any theme.json overrides. Raw CSS values such as `clamp()` or `rem` values are passed through as-is.
+A `<style>` tag prepended to the block with media query rules scoped to a per-block `phbrc-{id}` class. After migration, WordPress emits the rules itself through the Style Engine.
 
-= Can I add responsive controls to other blocks? =
+= Can I still add responsive controls to other blocks? =
 
-The architecture supports it. Adding a new block requires a code change to `src/config.js` and `includes/render.php`. A UI for managing supported blocks is not included in this version.
+Not with this plugin. WordPress 7.1's responsive styles already apply to every block that uses core block supports.
 
 == Changelog ==
+
+= 1.1.0 =
+* Sunset release. On WordPress 7.1+, the legacy tablet/mobile editor controls are no longer loaded.
+* Added a one-click migration that rewrites legacy attributes into WordPress's native responsive style states.
+* Added Dashboard and Plugins screen notices to run the migration and confirm when the plugin is safe to deactivate.
+* Added `ph_brc_legacy_ui_enabled` filter and `ph_brc_migrated_post` action.
+* Documentation rewritten to explain the sunset and migration.
 
 = 1.0.0 =
 * Initial release.

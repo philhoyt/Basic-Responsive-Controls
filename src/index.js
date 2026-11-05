@@ -583,8 +583,17 @@ const withResponsiveControls = createHigherOrderComponent( ( BlockEdit ) => {
 	};
 }, 'withResponsiveControls' );
 
-addFilter(
-	'editor.BlockEdit',
-	'ph/responsive-controls',
-	withResponsiveControls
-);
+/**
+ * The editor UI is only registered on WordPress < 7.1 (flag injected by PHP).
+ * WordPress 7.1+ provides responsive style states natively, and this HOC
+ * would hide those core controls. The blocks.registerBlockType filter above
+ * stays unconditional on every version so legacy attribute values are not
+ * dropped by the block parser when an unmigrated post is re-saved.
+ */
+if ( window.phBrc?.legacyUi ) {
+	addFilter(
+		'editor.BlockEdit',
+		'ph/responsive-controls',
+		withResponsiveControls
+	);
+}
