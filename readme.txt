@@ -4,7 +4,7 @@ Tags: block editor, typography, responsive, font size, gutenberg
 Requires at least: 6.3
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.1.0
+Stable tag: 1.1.1
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -76,6 +76,9 @@ A `<style>` tag prepended to the block with media query rules scoped to a per-bl
 Not with this plugin. WordPress 7.1's responsive styles already apply to every block that uses core block supports.
 
 == Changelog ==
+
+= 1.1.1 =
+* Fix: The update checker's bundled Markdown and readme parsers now ship with the plugin, so update checks no longer fail with a missing class.
 
 = 1.1.0 =
 * Sunset release. On WordPress 7.1+, the legacy tablet/mobile editor controls are no longer loaded.
