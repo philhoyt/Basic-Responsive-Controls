@@ -13,8 +13,26 @@
  * @package ph-basic-responsive-controls
  */
 
+use YahnisElsts\PluginUpdateChecker\v5\PucFactory;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
+}
+
+// Updates are delivered from GitHub releases via Plugin Update Checker.
+require_once __DIR__ . '/lib/plugin-update-checker/plugin-update-checker.php';
+
+$basic_responsive_controls_update_checker     = PucFactory::buildUpdateChecker(
+	'https://github.com/philhoyt/Basic-Responsive-Controls/',
+	__FILE__,
+	'basic-responsive-controls'
+);
+$basic_responsive_controls_update_checker_api = $basic_responsive_controls_update_checker->getVcsApi();
+if ( method_exists( $basic_responsive_controls_update_checker_api, 'enableReleaseAssets' ) ) {
+	// Only a .zip asset counts, and a release without one is skipped. The
+	// default PREFER_RELEASE_ASSETS falls back to GitHub's source archive,
+	// which installs as <Repo>-<tag>/ and breaks the plugin directory.
+	$basic_responsive_controls_update_checker_api->enableReleaseAssets( '/\.zip$/', $basic_responsive_controls_update_checker_api::REQUIRE_RELEASE_ASSETS );
 }
 
 require_once __DIR__ . '/includes/migrate.php';

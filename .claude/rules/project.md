@@ -15,6 +15,6 @@ paths:
 - Text domain: `ph-basic-responsive-controls`
 - PHP minimum: unspecified
 - WP minimum: unspecified
-- Distribution: GitHub (no release workflow)
+- Distribution: GitHub (release workflow + Plugin Update Checker)
 - Main file: `basic-responsive-controls.php`
 - Version constant: none (version in plugin header only)

@@ -1,0 +1,5 @@
+build/
+node_modules/
+vendor/
+# Vendored third-party library — not ours to lint.
+lib/

@@ -13,7 +13,9 @@
   "files": [
     "basic-responsive-controls.php",
     "includes/**",
-    "build/**"
+    "build/**",
+    "lib/**",
+    "readme.txt"
   ],
   "devDependencies": {
     "@wordpress/block-editor": "^20.0.0",
