@@ -2,8 +2,10 @@
 /**
  * Plugin Name: Basic Responsive Controls
  * Plugin URI:  https://github.com/philhoyt/Basic-Responsive-Controls
- * Description: Sunset. WordPress 7.1 provides responsive typography natively; this release migrates existing content to core and then gets out of the way.
+ * Description: Sunset release. Migrates this plugin's tablet and mobile typography settings to WordPress 7.1's responsive styles so the plugin can be removed.
  * Version:     1.1.1
+ * Requires at least: 6.3
+ * Requires PHP: 7.4
  * Author:      philhoyt
  * Author URI:  https://philhoyt.com
  * License:     GPL-2.0-or-later
