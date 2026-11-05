@@ -83,6 +83,7 @@ Not with this plugin. WordPress 7.1's responsive styles already apply to every b
 * Added Dashboard and Plugins screen notices to run the migration and confirm when the plugin is safe to deactivate.
 * Added `ph_brc_legacy_ui_enabled` filter and `ph_brc_migrated_post` action.
 * Documentation rewritten to explain the sunset and migration.
+* Change: updates are delivered through GitHub releases.
 
 = 1.0.0 =
 * Initial release.
