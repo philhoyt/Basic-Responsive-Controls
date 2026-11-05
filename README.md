@@ -1,5 +1,7 @@
 # Basic Responsive Controls
 
+[![CI](https://github.com/philhoyt/Basic-Responsive-Controls/actions/workflows/ci.yml/badge.svg)](https://github.com/philhoyt/Basic-Responsive-Controls/actions/workflows/ci.yml)
+
 > **Sunset.** WordPress 7.1 provides responsive typography natively. Version 1.1.0 is the final feature release: it migrates existing content to core and then gets out of the way.
 
 ## Why this plugin is no longer needed

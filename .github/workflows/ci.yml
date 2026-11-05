@@ -1,0 +1,72 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  php:
+    name: PHP ${{ matrix.php }}
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        # The plugin header says Requires PHP 7.4, but the dev toolchain
+        # (phpunit ^11) needs PHP 8.2, and the composer platform is pinned
+        # to 8.2.0 so the lock installs here. The matrix therefore starts
+        # at 8.2, not at the plugin's runtime floor.
+        php: [ '8.2', '8.3', '8.4' ]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          tools: composer
+          coverage: none
+
+      - name: Install PHP dependencies
+        run: composer install --no-interaction --prefer-dist
+
+      - name: Audit PHP dependencies
+        run: composer audit
+
+      - name: Lint (phpcs)
+        run: composer phpcs
+
+      # The migration tests are plain PHPUnit with their own bootstrap and
+      # do not need a WordPress install, so they run here on every PHP.
+      - name: PHPUnit
+        run: composer test
+
+  js:
+    name: JavaScript
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install JS dependencies
+        run: npm ci
+
+      - name: Lint JS
+        run: npm run lint:js
+
+      - name: Lint CSS
+        run: npm run lint:css
+
+      - name: Build
+        run: npm run build
